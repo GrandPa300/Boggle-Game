@@ -4,17 +4,25 @@ import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.Stopwatch;
  /**
   * Use 26-way tries. 
-  * based on ver 0.6, merge Tries into the BoggleSolver Class.
-  * Average run-time of 10000 random board is 1.9 (s).
+  * based on ver 0.7, Using Node for DFS search: 
+  *     for every recursive call, instead of starting all over again from root
+  *     new version of DFS continues searching from current node.
+  *     Search ends till a null node is hit.
+  *     
+  * Note: Need to check if node is NULL or MARKED first in DFS
+  *       since node with Q need to go one step further to node U
+  *       if Node Q itself is already NULL, node.next[] will throw a NullPointerException
+  *       after Node Q is update to Node U, a second NULL check is a must.
+  * Average run-time of 10000 random board is 1.05 (s).
   * @sean
-  * @0.7
+  * @1.0
   */
 public class BoggleSolver
 {
     private Node root;
     private BoggleBoard board;
     private boolean[][] marked;
-    private int col, row, size;
+    private int col, row;
     
     private LinkedList<String> result;
     private LinkedList<Node> nodeToReset;
@@ -25,8 +33,7 @@ public class BoggleSolver
     {
         root = new Node();
         for (int i = 0; i < dictionary.length; i++)
-            put(dictionary[i]);
-        
+            put(dictionary[i]);   
     }
     
     private static class Node
@@ -71,32 +78,40 @@ public class BoggleSolver
         this.board = board;
         this.row = board.rows();
         this.col = board.cols();
-        this.size = row * col;
         
         marked = new boolean[row][col];
         result = new LinkedList<>();
         nodeToReset = new LinkedList<>();
         
+        Node node;
         for (int i = 0; i < row; i++)
-            for (int j = 0; j < col; j++) dfs(i, j, "");
+            for (int j = 0; j < col; j++) 
+            {
+                node = root.next[board.getLetter(i, j) - 'A'];
+   
+                    dfs(node, i, j, "");
+            }
                  
         for (Node n : nodeToReset) n.val = 1;
            
         return result;
     }
     
-    private void dfs(int r, int c, String curWord)
+    private void dfs(Node node, int r, int c, String curWord)
     {
-        if (r < 0 || r > row - 1 || c < 0 || c > col - 1 || marked[r][c]) return;
+        if (node == null || marked[r][c]) return; // check if next node in tries is null
         
         char curChar = board.getLetter(r, c);
+        
+        if (curChar == 'Q') node = node.next['U' - 'A'];
+        if (node == null) return; // second check since node of 'Q' is moved onto node 'U'
+            
         if (curChar == 'Q') curWord += "QU";
         else curWord += curChar;
         
-        Node node = get(root, curWord, 0);
-        if (node == null) return;
         
         marked[r][c] = true;
+        
         if (node.val == 1)
         {
             nodeToReset.add(node);
@@ -104,14 +119,22 @@ public class BoggleSolver
             if (curWord.length() > 2) result.add(curWord);
         }
         
-        dfs(r - 1, c - 1, curWord);
-        dfs(r - 1, c, curWord);
-        dfs(r - 1, c + 1, curWord);
-        dfs(r, c - 1, curWord);
-        dfs(r, c + 1, curWord);
-        dfs(r + 1, c - 1, curWord);
-        dfs(r + 1, c, curWord);
-        dfs(r + 1, c + 1, curWord);
+        if (r - 1 >= 0 && c - 1 >= 0)
+            dfs(node.next[board.getLetter(r-1, c-1) - 'A'], r - 1, c - 1, curWord);
+        if (r - 1 >= 0)
+            dfs(node.next[board.getLetter(r-1, c) - 'A'], r - 1, c, curWord);
+        if (r - 1 >= 0 && c + 1 < col)
+            dfs(node.next[board.getLetter(r-1, c+1) - 'A'], r - 1, c + 1, curWord);
+        if (c - 1 >= 0)
+            dfs(node.next[board.getLetter(r, c-1) - 'A'], r, c - 1, curWord);
+        if (c + 1 < col)
+            dfs(node.next[board.getLetter(r, c+1) - 'A'], r, c + 1, curWord);
+        if (r + 1 < row && c - 1 >= 0)
+            dfs(node.next[board.getLetter(r+1, c-1) - 'A'], r + 1, c - 1, curWord);
+        if (r + 1 < row)
+            dfs(node.next[board.getLetter(r+1, c) - 'A'], r + 1, c, curWord);
+        if (r + 1 < row && c + 1 < col)
+            dfs(node.next[board.getLetter(r+1, c+1) - 'A'], r + 1, c + 1, curWord);
         
         marked[r][c] = false;
         return;
@@ -167,7 +190,7 @@ public class BoggleSolver
         }
     }
    */
-   
+   /*
     public static void main(String[] args) 
     {
         int iteration = 0;
@@ -193,8 +216,8 @@ public class BoggleSolver
         double avg = Math.floor(totalTime * 100) / 1000;
         StdOut.println("Average run-time for 10000 board is :" + avg);
     }
+   */
    
-   /*
    public static void main(String[] args) 
     {
         Stopwatch timer = new Stopwatch();
@@ -217,5 +240,5 @@ public class BoggleSolver
         StdOut.println("student solution per second is " + solPerSec);
         StdOut.println("reference/student ratio is " + ratio);  
     }
-    */
+    
 }
