@@ -4,16 +4,17 @@ import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.Stopwatch;
  /**
   * Use 26-way tries. 
-  * based on ver 0.2, using String instead of StringBuilder
-  * Average run-time of 10000 random board is 2.344 (s).
+  * based on ver 0.3, instead of go through board and store each letter into a 2D array
+  * save board as an instance variable, in DFS search directly call board.getLetter().
+  * Average run-time of 10000 random board is 2.177 (s).
   * @sean
-  * @0.3
+  * @0.4
   */
 public class BoggleSolver
 {
     private Trie dict;
     private boolean[][] marked;
-    private char[][] letters;
+    private BoggleBoard board;
     private int col, row, size;
     
     
@@ -29,18 +30,14 @@ public class BoggleSolver
     // Returns the set of all valid words in the given Boggle board, as an Iterable.
     public Iterable<String> getAllValidWords(BoggleBoard board)
     {
-        row = board.rows();
-        col = board.cols();
-        size = row * col;
+        this.board = board;
+        this.row = board.rows();
+        this.col = board.cols();
+        this.size = row * col;
         
         marked = new boolean[row][col];
-        letters = new char[row][col];
 
         HashSet<String> result = new HashSet<>();
-        for (int i = 0; i < row; i++)
-            for (int j = 0; j < col; j++)
-                letters[i][j] = board.getLetter(i, j);
-        
         
         for (int i = 0; i < row; i++)
             for (int j = 0; j < col; j++) dfs(i, j, "", result);
@@ -51,9 +48,9 @@ public class BoggleSolver
     {
         if (r < 0 || r > row - 1 || c < 0 || c > col - 1 || marked[r][c]) return;
         
-        char curChar = letters[r][c];
-        curWord += curChar;
-        if (curChar == 'Q') curWord += 'U';
+        char curChar = board.getLetter(r, c);
+        if (curChar == 'Q') curWord += "QU";
+        else curWord += curChar;
         
         if (!dict.isPrefix(curWord)) return;
         
@@ -123,7 +120,7 @@ public class BoggleSolver
         
     }*/
     
-   
+   /*
    public static void main(String[] args) 
     {
         int iteration = 0;
@@ -148,5 +145,29 @@ public class BoggleSolver
         }
         double avg = Math.floor(totalTime * 100) / 1000;
         StdOut.println("Average run-time for 10000 board is :" + avg);
+    }*/
+    
+    public static void main(String[] args) 
+    {
+        Stopwatch timer = new Stopwatch();
+        In in = new In(args[0]);
+        String[] dictionary = in.readAllStrings();
+        
+        BoggleSolver solver = new BoggleSolver(dictionary);
+        int count = 0;
+        while (count < 30000)
+        {
+            BoggleBoard board = new BoggleBoard();
+            solver.getAllValidWords(board);
+            count++;
+        }
+        double time = timer.elapsedTime();
+        double solPerSec = Math.floor(30000 / time * 100) / 100; 
+        double ratio = Math.floor(6175.83 / solPerSec * 100) / 100;
+        StdOut.println("Total Time for 30000 random board is " + timer.elapsedTime());
+        StdOut.println("reference solution per second is 6175.83");
+        StdOut.println("student solution per second is " + solPerSec);
+        StdOut.println("reference/student ratio is " + ratio);
+        
     }
 }
