@@ -4,16 +4,16 @@ import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.Stopwatch;
  /**
   * Use 26-way tries. 
-  * based on ver 0.3, instead of go through board and store each letter into a 2D array
-  * save board as an instance variable, in DFS search directly call board.getLetter().
-  * Average run-time of 10000 random board is 2.177 (s).
+  * based on ver 0.4, save result as an instance variable.
+  * Average run-time of 10000 random board is 2.168 (s). no abvious improvement.
   * @sean
-  * @0.4
+  * @0.5
   */
 public class BoggleSolver
 {
     private Trie dict;
     private boolean[][] marked;
+    private HashSet<String> result;
     private BoggleBoard board;
     private int col, row, size;
     
@@ -36,15 +36,14 @@ public class BoggleSolver
         this.size = row * col;
         
         marked = new boolean[row][col];
-
-        HashSet<String> result = new HashSet<>();
+        result = new HashSet<>();
         
         for (int i = 0; i < row; i++)
-            for (int j = 0; j < col; j++) dfs(i, j, "", result);
+            for (int j = 0; j < col; j++) dfs(i, j, "");
         return result;
     }
     
-    private void dfs(int r, int c, String curWord, HashSet<String> list)
+    private void dfs(int r, int c, String curWord)
     {
         if (r < 0 || r > row - 1 || c < 0 || c > col - 1 || marked[r][c]) return;
         
@@ -56,16 +55,16 @@ public class BoggleSolver
         
         marked[r][c] = true;
         if (dict.contains(curWord) && curWord.length() > 2) 
-            list.add(curWord);
+            result.add(curWord);
         
-        dfs(r - 1, c - 1, curWord, list);
-        dfs(r - 1, c, curWord, list);
-        dfs(r - 1, c + 1, curWord, list);
-        dfs(r, c - 1, curWord, list);
-        dfs(r, c + 1, curWord, list);
-        dfs(r + 1, c - 1, curWord, list);
-        dfs(r + 1, c, curWord, list);
-        dfs(r + 1, c + 1, curWord, list);
+        dfs(r - 1, c - 1, curWord);
+        dfs(r - 1, c, curWord);
+        dfs(r - 1, c + 1, curWord);
+        dfs(r, c - 1, curWord);
+        dfs(r, c + 1, curWord);
+        dfs(r + 1, c - 1, curWord);
+        dfs(r + 1, c, curWord);
+        dfs(r + 1, c + 1, curWord);
         
         marked[r][c] = false;
         return;
@@ -120,7 +119,7 @@ public class BoggleSolver
         
     }*/
     
-   /*
+   
    public static void main(String[] args) 
     {
         int iteration = 0;
@@ -145,29 +144,5 @@ public class BoggleSolver
         }
         double avg = Math.floor(totalTime * 100) / 1000;
         StdOut.println("Average run-time for 10000 board is :" + avg);
-    }*/
-    
-    public static void main(String[] args) 
-    {
-        Stopwatch timer = new Stopwatch();
-        In in = new In(args[0]);
-        String[] dictionary = in.readAllStrings();
-        
-        BoggleSolver solver = new BoggleSolver(dictionary);
-        int count = 0;
-        while (count < 30000)
-        {
-            BoggleBoard board = new BoggleBoard();
-            solver.getAllValidWords(board);
-            count++;
-        }
-        double time = timer.elapsedTime();
-        double solPerSec = Math.floor(30000 / time * 100) / 100; 
-        double ratio = Math.floor(6175.83 / solPerSec * 100) / 100;
-        StdOut.println("Total Time for 30000 random board is " + timer.elapsedTime());
-        StdOut.println("reference solution per second is 6175.83");
-        StdOut.println("student solution per second is " + solPerSec);
-        StdOut.println("reference/student ratio is " + ratio);
-        
     }
 }
