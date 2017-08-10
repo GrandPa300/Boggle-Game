@@ -1,16 +1,16 @@
 import java.util.HashSet;
+import java.util.ArrayList;
 import java.lang.StringBuilder;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.Stopwatch;
-
-/**
+ /**
   * Use 26-way tries.
-  * Average run-time of 10000 random board is 7.662 (s).
+  * Used ArrayList instead of HashSet to store adjacent letters.
+  * Average run-time of 10000 random board is 2.963 (s).
   * @sean
-  * @0.0
+  * @0.1
   */
-
 public class BoggleSolver
 {
     private Trie dict;
@@ -83,9 +83,9 @@ public class BoggleSolver
             curWord.deleteCharAt(current.length() - 2);
     }
     
-    private HashSet<int[]> findAdj(int row, int col)
+    private ArrayList<int[]> findAdj(int row, int col)
     {
-        HashSet<int[]> adj = new HashSet<>();
+        ArrayList<int[]> adj = new ArrayList<>();
         adj.add(new int[] {row - 1, col - 1});
         adj.add(new int[] {row - 1, col});
         adj.add(new int[] {row - 1, col + 1});
