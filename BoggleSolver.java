@@ -4,33 +4,65 @@ import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.Stopwatch;
  /**
   * Use 26-way tries. 
-  * based on ver 0.5, using LinkedList to store vaild words.
-  *  - In Tries Class, combine contains and isPrefix into get method. 
-  *  - To avoid duplicate results, in Trie Class, when get(String) has value of 1, 
-  *    change the value of this trie node to 2, and record that node in a LinkedList. 
-  *  - In DFS, stop search when value is -1, add to result if value is 1, 
-  *    for other values (0 or 2), continue DFS search.
-  *  - After each DFS search, reset those node back to 1. 
+  * based on ver 0.6, merge Tries into the BoggleSolver Class.
   * Average run-time of 10000 random board is 1.9 (s).
   * @sean
-  * @0.6
+  * @0.7
   */
 public class BoggleSolver
 {
-    private Trie dict;
-    private boolean[][] marked;
+    private Node root;
     private BoggleBoard board;
+    private boolean[][] marked;
     private int col, row, size;
-    private LinkedList<String> result;
     
+    private LinkedList<String> result;
+    private LinkedList<Node> nodeToReset;
     
     // Initializes the data structure using the given array of strings as the dictionary.
     // (You can assume each word in the dictionary contains only the uppercase letters A through Z.)
     public BoggleSolver(String[] dictionary)
     {
-        dict = new Trie();
+        root = new Node();
         for (int i = 0; i < dictionary.length; i++)
-            dict.put(dictionary[i]);
+            put(dictionary[i]);
+        
+    }
+    
+    private static class Node
+    {
+        private int val = 0;
+        private Node[] next = new Node[26];
+    }
+    
+    private int get(String key) {
+        Node x = get(root, key, 0);
+        if (x == null) return 0;
+        return x.val;
+    }
+    
+    private Node get(Node x, String key, int d) 
+    {
+        if (x == null) return null;
+        if (d == key.length()) return x;
+        int c = key.charAt(d) - 'A';
+        return get(x.next[c], key, d+1);
+    }
+    
+    public void put(String key) 
+    {root = put(root, key, 0);}
+
+    private Node put(Node x, String key, int d) 
+    {
+        if (x == null) x = new Node();
+        if (d == key.length()) 
+        {
+            x.val = 1;
+            return x;
+        }
+        int c = key.charAt(d) - 'A';
+        x.next[c] = put(x.next[c], key, d+1);
+        return x;
     }
 
     // Returns the set of all valid words in the given Boggle board, as an Iterable.
@@ -40,14 +72,16 @@ public class BoggleSolver
         this.row = board.rows();
         this.col = board.cols();
         this.size = row * col;
-        dict.resetNodes();
         
         marked = new boolean[row][col];
         result = new LinkedList<>();
+        nodeToReset = new LinkedList<>();
         
         for (int i = 0; i < row; i++)
             for (int j = 0; j < col; j++) dfs(i, j, "");
-            
+                 
+        for (Node n : nodeToReset) n.val = 1;
+           
         return result;
     }
     
@@ -59,13 +93,17 @@ public class BoggleSolver
         if (curChar == 'Q') curWord += "QU";
         else curWord += curChar;
         
-        int status = dict.get(curWord);
-        if (status < 0 ) return;
+        Node node = get(root, curWord, 0);
+        if (node == null) return;
         
         marked[r][c] = true;
-        if (status == 1 && curWord.length() > 2) 
-            result.add(curWord);
-            
+        if (node.val == 1)
+        {
+            nodeToReset.add(node);
+            node.val = 2;
+            if (curWord.length() > 2) result.add(curWord);
+        }
+        
         dfs(r - 1, c - 1, curWord);
         dfs(r - 1, c, curWord);
         dfs(r - 1, c + 1, curWord);
@@ -83,7 +121,7 @@ public class BoggleSolver
     // (You can assume the word contains only the uppercase letters A through Z.)
     public int scoreOf(String word)
     {
-       if (dict.get(word) < 1) return 0;
+       if (get(root, word, 0).val < 1) return 0;
        int len = word.length();
        if (len < 3) return 0;
        else if (len < 4) return 1; 
@@ -129,8 +167,8 @@ public class BoggleSolver
         }
     }
    */
-   /*
-   public static void main(String[] args) 
+   
+    public static void main(String[] args) 
     {
         int iteration = 0;
         double totalTime = 0;
@@ -155,8 +193,8 @@ public class BoggleSolver
         double avg = Math.floor(totalTime * 100) / 1000;
         StdOut.println("Average run-time for 10000 board is :" + avg);
     }
-    */
    
+   /*
    public static void main(String[] args) 
     {
         Stopwatch timer = new Stopwatch();
@@ -179,5 +217,5 @@ public class BoggleSolver
         StdOut.println("student solution per second is " + solPerSec);
         StdOut.println("reference/student ratio is " + ratio);  
     }
-   
+    */
 }
