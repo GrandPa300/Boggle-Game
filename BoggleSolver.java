@@ -1,15 +1,15 @@
 import java.util.HashSet;
-import java.util.ArrayList;
 import java.lang.StringBuilder;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.Stopwatch;
  /**
   * Use 26-way tries.
-  * Used ArrayList instead of HashSet to store adjacent letters.
-  * Average run-time of 10000 random board is 2.963 (s).
+  * In DFS search, directly call DFS on each adjacent letter 
+  * instead of using for-loop for recursion. 
+  * Average run-time of 10000 random board is 2.484 (s).
   * @sean
-  * @0.1
+  * @0.2
   */
 public class BoggleSolver
 {
@@ -74,27 +74,19 @@ public class BoggleSolver
         if (dict.contains(current) && current.length() > 2) 
             list.add(current);
         
-        for (int[] next : findAdj(r, c)) 
-            dfs(next[0], next[1], curWord, list);
+        dfs(r - 1, c - 1, curWord, list);
+        dfs(r - 1, c, curWord, list);
+        dfs(r - 1, c + 1, curWord, list);
+        dfs(r, c - 1, curWord, list);
+        dfs(r, c + 1, curWord, list);
+        dfs(r + 1, c - 1, curWord, list);
+        dfs(r + 1, c, curWord, list);
+        dfs(r + 1, c + 1, curWord, list);
         
         marked[r][c] = false;
         curWord.deleteCharAt(current.length() - 1);
         if (curChar == 'Q') 
             curWord.deleteCharAt(current.length() - 2);
-    }
-    
-    private ArrayList<int[]> findAdj(int row, int col)
-    {
-        ArrayList<int[]> adj = new ArrayList<>();
-        adj.add(new int[] {row - 1, col - 1});
-        adj.add(new int[] {row - 1, col});
-        adj.add(new int[] {row - 1, col + 1});
-        adj.add(new int[] {row, col - 1});
-        adj.add(new int[] {row, col + 1});
-        adj.add(new int[] {row + 1, col - 1});
-        adj.add(new int[] {row + 1, col});
-        adj.add(new int[] {row + 1, col + 1});
-        return adj;
     }
 
     // Returns the score of the given word if it is in the dictionary, zero otherwise.
