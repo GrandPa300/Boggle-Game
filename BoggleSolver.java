@@ -1,15 +1,13 @@
 import java.util.HashSet;
-import java.lang.StringBuilder;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.Stopwatch;
  /**
-  * Use 26-way tries.
-  * In DFS search, directly call DFS on each adjacent letter 
-  * instead of using for-loop for recursion. 
-  * Average run-time of 10000 random board is 2.484 (s).
+  * Use 26-way tries. 
+  * based on ver 0.2, using String instead of StringBuilder
+  * Average run-time of 10000 random board is 2.344 (s).
   * @sean
-  * @0.2
+  * @0.3
   */
 public class BoggleSolver
 {
@@ -45,34 +43,23 @@ public class BoggleSolver
         
         
         for (int i = 0; i < row; i++)
-            for (int j = 0; j < col; j++)
-            {
-                StringBuilder curWord = new StringBuilder();
-                dfs(i, j, curWord, result);
-            }
+            for (int j = 0; j < col; j++) dfs(i, j, "", result);
         return result;
     }
     
-    private void dfs(int r, int c, StringBuilder curWord, HashSet<String> list)
+    private void dfs(int r, int c, String curWord, HashSet<String> list)
     {
         if (r < 0 || r > row - 1 || c < 0 || c > col - 1 || marked[r][c]) return;
         
         char curChar = letters[r][c];
-        curWord.append(curChar);
-        if (curChar == 'Q') curWord.append('U');
+        curWord += curChar;
+        if (curChar == 'Q') curWord += 'U';
         
-        String current = curWord.toString();
-        if (!dict.isPrefix(current))
-        {
-            curWord.deleteCharAt(current.length() - 1);
-            if (curChar == 'Q') 
-                curWord.deleteCharAt(current.length() - 2);
-            return;
-        }
+        if (!dict.isPrefix(curWord)) return;
         
         marked[r][c] = true;
-        if (dict.contains(current) && current.length() > 2) 
-            list.add(current);
+        if (dict.contains(curWord) && curWord.length() > 2) 
+            list.add(curWord);
         
         dfs(r - 1, c - 1, curWord, list);
         dfs(r - 1, c, curWord, list);
@@ -84,9 +71,7 @@ public class BoggleSolver
         dfs(r + 1, c + 1, curWord, list);
         
         marked[r][c] = false;
-        curWord.deleteCharAt(current.length() - 1);
-        if (curChar == 'Q') 
-            curWord.deleteCharAt(current.length() - 2);
+        return;
     }
 
     // Returns the score of the given word if it is in the dictionary, zero otherwise.
