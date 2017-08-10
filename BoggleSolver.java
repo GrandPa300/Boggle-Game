@@ -1,21 +1,27 @@
-import java.util.HashSet;
+import java.util.LinkedList;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.Stopwatch;
  /**
   * Use 26-way tries. 
-  * based on ver 0.4, save result as an instance variable.
-  * Average run-time of 10000 random board is 2.168 (s). no abvious improvement.
+  * based on ver 0.5, using LinkedList to store vaild words.
+  *  - In Tries Class, combine contains and isPrefix into get method. 
+  *  - To avoid duplicate results, in Trie Class, when get(String) has value of 1, 
+  *    change the value of this trie node to 2, and record that node in a LinkedList. 
+  *  - In DFS, stop search when value is -1, add to result if value is 1, 
+  *    for other values (0 or 2), continue DFS search.
+  *  - After each DFS search, reset those node back to 1. 
+  * Average run-time of 10000 random board is 1.9 (s).
   * @sean
-  * @0.5
+  * @0.6
   */
 public class BoggleSolver
 {
     private Trie dict;
     private boolean[][] marked;
-    private HashSet<String> result;
     private BoggleBoard board;
     private int col, row, size;
+    private LinkedList<String> result;
     
     
     // Initializes the data structure using the given array of strings as the dictionary.
@@ -34,12 +40,14 @@ public class BoggleSolver
         this.row = board.rows();
         this.col = board.cols();
         this.size = row * col;
+        dict.resetNodes();
         
         marked = new boolean[row][col];
-        result = new HashSet<>();
+        result = new LinkedList<>();
         
         for (int i = 0; i < row; i++)
             for (int j = 0; j < col; j++) dfs(i, j, "");
+            
         return result;
     }
     
@@ -51,12 +59,13 @@ public class BoggleSolver
         if (curChar == 'Q') curWord += "QU";
         else curWord += curChar;
         
-        if (!dict.isPrefix(curWord)) return;
+        int status = dict.get(curWord);
+        if (status < 0 ) return;
         
         marked[r][c] = true;
-        if (dict.contains(curWord) && curWord.length() > 2) 
+        if (status == 1 && curWord.length() > 2) 
             result.add(curWord);
-        
+            
         dfs(r - 1, c - 1, curWord);
         dfs(r - 1, c, curWord);
         dfs(r - 1, c + 1, curWord);
@@ -74,7 +83,7 @@ public class BoggleSolver
     // (You can assume the word contains only the uppercase letters A through Z.)
     public int scoreOf(String word)
     {
-       if (!dict.contains(word)) return 0;
+       if (dict.get(word) < 1) return 0;
        int len = word.length();
        if (len < 3) return 0;
        else if (len < 4) return 1; 
@@ -97,8 +106,8 @@ public class BoggleSolver
             score += solver.scoreOf(word);
         }
         StdOut.println("Score = " + score);
-    }*/
-    
+    }
+    */
     /*
     public static void main(String[] args) 
     {
@@ -112,14 +121,15 @@ public class BoggleSolver
         {
             BoggleBoard board = new BoggleBoard(boardList[i]);
             int score = 0;
-            for (String word : solver.getAllValidWords(board))
+            Iterable<String> words = solver.getAllValidWords(board);
+            //for (String word : solver.getAllValidWords(board))
+            for (String word : words)
                 score += solver.scoreOf(word);
             StdOut.println(boardList[i].substring(18) + " Score = " + score);
         }
-        
-    }*/
-    
-   
+    }
+   */
+   /*
    public static void main(String[] args) 
     {
         int iteration = 0;
@@ -145,4 +155,29 @@ public class BoggleSolver
         double avg = Math.floor(totalTime * 100) / 1000;
         StdOut.println("Average run-time for 10000 board is :" + avg);
     }
+    */
+   
+   public static void main(String[] args) 
+    {
+        Stopwatch timer = new Stopwatch();
+        In in = new In(args[0]);
+        String[] dictionary = in.readAllStrings();
+        
+        BoggleSolver solver = new BoggleSolver(dictionary);
+        int count = 0;
+        while (count < 30000)
+        {
+            BoggleBoard board = new BoggleBoard();
+            solver.getAllValidWords(board);
+            count++;
+        }
+        double time = timer.elapsedTime();
+        double solPerSec = Math.floor(30000 / time * 100) / 100; 
+        double ratio = Math.floor(6175.83 / solPerSec * 100) / 100;
+        StdOut.println("Total Time for 30000 random board is " + timer.elapsedTime());
+        StdOut.println("reference solution per second is 6175.83");
+        StdOut.println("student solution per second is " + solPerSec);
+        StdOut.println("reference/student ratio is " + ratio);  
+    }
+   
 }
